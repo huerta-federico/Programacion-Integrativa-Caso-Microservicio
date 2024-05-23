@@ -1,3 +1,6 @@
+// Código de ejemplo obtenido desde https://github.com/udaychandra/user-crud-microservice/blob/master/pom.xml
+// Presente en el repositorio como guía y no está registrado en las rutas.
+
 package ec.edu.utpl.ti.pintegrativa.microservices.biblioteca;
 
 import static io.helidon.common.http.Http.Status.ACCEPTED_202;
@@ -25,7 +28,7 @@ public class UserService implements Service {
 
     public UserService() {
         this.users = new HashMap<>();
-        users = ActivitiesRepository.activities;
+        // users = ActivitiesResourceService.activities;
     }
 
     

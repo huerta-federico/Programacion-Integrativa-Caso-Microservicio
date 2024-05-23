@@ -1,6 +1,5 @@
 package ec.edu.utpl.ti.pintegrativa.microservices.biblioteca;
 
-import io.helidon.common.http.Http;
 import io.helidon.webserver.Routing;
 import io.helidon.webserver.ServerRequest;
 import io.helidon.webserver.ServerResponse;
@@ -8,14 +7,12 @@ import io.helidon.webserver.Service;
 
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
-import javax.json.JsonBuilderFactory;
+import javax.json.JsonException;
 import javax.json.JsonObject;
-import java.util.Collections;
 import java.util.UUID;
 
 public class ActivitiesResourceService implements Service {
-    private ActivitiesRepository repository;
-    private static final JsonBuilderFactory JSON = Json.createBuilderFactory(Collections.emptyMap());
+    public ActivitiesRepository repository;
 
     public ActivitiesResourceService(ActivitiesRepository repository) {
         this.repository = repository;
@@ -24,73 +21,28 @@ public class ActivitiesResourceService implements Service {
     @Override
     public void update(Routing.Rules rules) {
         rules
-                // .get("/get/{code}", this::getHandler)
                 .get("/get/{id}", this::getHandler)
-                // .get("/list", this::listHandler)
-                // .get("/list2", this::listHandler2)
                 .get("/list", this::listHandler)
                 .post("/create", this::createHandler)
                 .put("/update/{id}", this::updateHandler)
                 .delete("/delete/{id}", this::deleteHandler);
-
     }
 
-    /*
-     * private void getHandler(ServerRequest request, ServerResponse response) {
-     * String code = request.path().param("code").toUpperCase();
-     * boolean exists = repository.exists(code);
-     * if (exists) {
-     * JsonObject returnObject = JSON.createObjectBuilder()
-     * .add("code", code)
-     * .add("exist", exists)
-     * .build();
-     * response.send(returnObject);
-     * } else {
-     * response.status(Http.Status.NOT_FOUND_404).send();
-     * System.out.println("No hay nada");
-     * }
-     * }
-     */
     private synchronized void getHandler(ServerRequest request, ServerResponse response) {
-        JsonObject user = ActivitiesRepository.activities.get(getID(request));
+        // Retorna el elemento del repositorio con el ID especificado
+        JsonObject activity = repository.activities.get(getID(request));
 
-        if (user != null) {
-            response.status(200).send(user);
+        if (activity != null) {
+            response.status(200).send(activity);
         } else {
             response.status(404).send();
         }
     }
 
-    /*
-     * private void listHandler(ServerRequest request, ServerResponse response) {
-     * JsonArrayBuilder builder = Json.createArrayBuilder();
-     * repository.dataBase.forEach(builder::add);
-     * ActivitiesRepository.dataBase.forEach(System.out::println);
-     * // repository.dataBase.forEach( builder::add);
-     * 
-     * JsonObject result = Json.createObjectBuilder()
-     * .add("items", builder.build())
-     * .build();
-     * 
-     * response.status(200).send(result);
-     * 
-     * }
-     * 
-     * private synchronized void listHandler2(ServerRequest req, ServerResponse res)
-     * {
-     * JsonArrayBuilder builder = Json.createArrayBuilder();
-     * ActivitiesRepository.activities.forEach(builder::add);
-     * 
-     * JsonObject result = Json.createObjectBuilder()
-     * .add("items", builder.build())
-     * .build();
-     * 
-     * res.status(200).send(result);
-     * }
-     */
     private synchronized void listHandler(ServerRequest request, ServerResponse response) {
+        // Retorna todos los elementos de repositorio
         JsonArrayBuilder builder = Json.createArrayBuilder();
-        ActivitiesRepository.activities.values().forEach(builder::add);
+        repository.activities.values().forEach(builder::add);
 
         JsonObject result = Json.createObjectBuilder()
                 .add("items", builder.build())
@@ -100,50 +52,80 @@ public class ActivitiesResourceService implements Service {
     }
 
     private void createHandler(ServerRequest request, ServerResponse response) {
+        // Crea un nuevo elemento en el repositorio
         request.content()
                 .as(JsonObject.class)
                 .thenAccept(payload -> {
                     // That's right, no validation for this sample service.
-                    String id = generateID();
-                    JsonObject user = Json.createObjectBuilder(payload)
-                            .add("id", id)
-                            .build();
+                    boolean valid = validateActivity(payload);
+                    if (valid) {
+                        String id = generateID();
+                        JsonObject activity = Json.createObjectBuilder(payload)
+                                .add("id", id)
+                                .build();
 
-                    ActivitiesRepository.activities.put(id, user);
-                    response.status(201).send(user);
+                        repository.activities.put(id, activity);
+                        response.status(201).send(activity);
+                    } else
+                        response.status(422).send();
                 });
     }
 
     private void updateHandler(ServerRequest request, ServerResponse response) {
+        // Actualiza un elemento en el repositorio con el ID especificado
         request.content()
                 .as(JsonObject.class)
                 .thenAccept(payload -> {
-                    String id = getID(request);
-                    // Make sure the ID doesn't change.
-                    JsonObject user = Json.createObjectBuilder(payload)
-                            .add("id", id)
-                            .build();
+                    boolean valid = validateActivity(payload);
+                    if (valid) {
+                        String id = getID(request);
+                        JsonObject activity = Json.createObjectBuilder(payload)
+                                .add("id", id)
+                                .build();
 
-                    ActivitiesRepository.activities.put(id, user);
-                    response.status(202).send(user);
+                        repository.activities.put(id, activity);
+                        response.status(202).send(activity);
+                    } else
+                        response.status(422).send();
+
                 });
     }
 
     private void deleteHandler(ServerRequest request, ServerResponse response) {
-        JsonObject user = ActivitiesRepository.activities.remove(getID(request));
+        // Elimina un elemento del repositorio con el ID especificado
+        JsonObject activity = repository.activities.remove(getID(request));
 
-        if (user != null) {
-            response.status(202).send(user);
+        if (activity != null) {
+            response.status(202).send(activity);
         } else {
             response.status(404).send();
         }
     }
 
-    private static String getID(ServerRequest req) {
-        return req.path().param("id");
+    private static String getID(ServerRequest request) {
+        // Obtiene el parámetro ID del ServerRequest
+        return request.path().param("id");
     }
 
     static String generateID() {
+        // Genera una ID alfanumérica aleatoria
         return UUID.randomUUID().toString();
     }
+
+    private boolean validateActivity(JsonObject activity) {
+        // Valida los datos ingresados
+        try {
+            if (activity.getString("materia") == "" || activity.getString("titulo") == ""
+                    || (activity.getInt("calificacion")) < 0
+                    || (activity.getInt("calificacion")) > 10) {
+                return false;
+            } else
+                return true;
+
+        } catch (JsonException ex) {
+            ex.printStackTrace();
+            return false;
+        }
+    }
+
 }

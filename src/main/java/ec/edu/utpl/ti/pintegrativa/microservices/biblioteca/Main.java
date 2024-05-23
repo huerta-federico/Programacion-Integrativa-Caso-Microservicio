@@ -24,15 +24,17 @@ public final class Main {
 
     /**
      * Application main entry point.
+     * 
      * @param args command line arguments.
      */
     public static void main(final String[] args) {
         startServer();
-        
+
     }
 
     /**
      * Start the server.
+     * 
      * @return the created {@link WebServer} instance
      */
     static Single<WebServer> startServer() {
@@ -53,9 +55,9 @@ public final class Main {
         // Try to start the server. If successful, print some info and arrange to
         // print a message at shutdown. If unsuccessful, print the exception.
         webserver.thenAccept(ws -> {
-                    System.out.println("WEB server is up! http://localhost:" + ws.port() + "/greet");
-                    ws.whenShutdown().thenRun(() -> System.out.println("WEB server is DOWN. Good bye!"));
-                })
+            System.out.println("WEB server is up! http://localhost:" + ws.port() + "/greet");
+            ws.whenShutdown().thenRun(() -> System.out.println("WEB server is DOWN. Good bye!"));
+        })
                 .exceptionallyAccept(t -> {
                     System.err.println("Startup failed: " + t.getMessage());
                     t.printStackTrace(System.err);
@@ -75,14 +77,13 @@ public final class Main {
         MetricsSupport metrics = MetricsSupport.create();
         GreetService greetService = new GreetService(config);
         HealthSupport health = HealthSupport.builder()
-                .addLiveness(HealthChecks.healthChecks())   // Adds a convenient set of checks
+                .addLiveness(HealthChecks.healthChecks()) // Adds a convenient set of checks
                 .build();
 
         return Routing.builder()
-                .register(health)                   // Health at "/health"
-                .register(metrics)                  // Metrics at "/metrics"
+                .register(health) // Health at "/health"
+                .register(metrics) // Metrics at "/metrics"
                 .register("/greet", greetService)
-                //.register("/cities", new CitiesService(new CitiesRepository()))
                 .register("/activities", new ActivitiesResourceService(new ActivitiesRepository()))
                 .build();
     }
