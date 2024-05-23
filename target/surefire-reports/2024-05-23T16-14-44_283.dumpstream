@@ -1,0 +1,4 @@
+# Created at 2024-05-23T16:14:44.497
+Boot Manifest-JAR contains absolute paths in classpath 'D:\User Files\GitHub\UTPL\8c_pi\microservices\target\test-classes'
+Hint: <argLine>-Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
+
