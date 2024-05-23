@@ -22,9 +22,10 @@ FROM openjdk:11-jre-slim
 WORKDIR /helidon
 
 # Copy the binary built in the 1st stage
-COPY --from=build /helidon/target/bibmicroservices.jar ./
+COPY --from=build /helidon/target/microservices.jar ./
 COPY --from=build /helidon/target/libs ./libs
 
-CMD ["java", "-jar", "bibmicroservices.jar"]
+CMD ["java", "-jar", "microservices.jar"]
 
 EXPOSE 8080
+

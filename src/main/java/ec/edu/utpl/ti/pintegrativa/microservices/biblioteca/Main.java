@@ -1,3 +1,12 @@
+// UTPL Tecnologías de la Información abril-agosto 2024
+
+// Laboratorio Virtual de programación: Implementación de un Microservicio
+// Elaborado por Federico Huerta
+
+// Basado en el código de la materia por el Ing. Jorge Lopez
+// https://github.com/jorgaf/programacionintegrativa
+// y el código por Uday Chandra
+// https://github.com/udaychandra/user-crud-microservice
 
 package ec.edu.utpl.ti.pintegrativa.microservices.biblioteca;
 

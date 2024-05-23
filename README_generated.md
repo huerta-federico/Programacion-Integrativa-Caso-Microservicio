@@ -7,7 +7,7 @@ Sample Helidon SE project that includes multiple REST operations.
 With JDK11+
 ```bash
 mvn package
-java -jar target/bibmicroservices.jar
+java -jar target/microservices.jar
 ```
 
 ## Exercise the application
@@ -47,13 +47,13 @@ curl -H 'Accept: application/json' -X GET http://localhost:8080/metrics
 ## Build the Docker Image
 
 ```
-docker build -t bibmicroservices .
+docker build -t microservices .
 ```
 
 ## Start the application with Docker
 
 ```
-docker run --rm -p 8080:8080 bibmicroservices:latest
+docker run --rm -p 8080:8080 microservices:latest
 ```
 
 Exercise the application as described above
